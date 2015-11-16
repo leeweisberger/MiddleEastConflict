@@ -1,0 +1,31 @@
+/* Empty. Add your own CSS if you like */
+map {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.scroll {
+  height: 100%;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+}
+
+.item .item-content {
+  background-color: transparent;
+}
+
+.distance{
+	float:right
+}
+
+.name{
+	font-weight:bold
+}
+
+br {
+   display: block;
+   margin: 10px 0;
+}

@@ -1,0 +1,19 @@
+<ion-view title="Duke Gardens">
+  <ion-content scroll="false">
+          <map on-create="mapCreated(map)"></map>
+
+  
+
+    
+    </ion-content>
+
+
+    <ion-footer-bar class="bar-stable">
+        <div style="width:100%;" class="item range">
+          <i class="icon ion-calendar"></i>
+            <input type="range" name="months" min="0" max="284" value='0' ng-model="rangeValue" ng-change="drag(rangeValue)">
+          <i class="icon ion-calendar"></i>
+          Year: {{year}}  Month: {{month}}
+        </div>
+    </ion-footer-bar>
+</ion-view>
