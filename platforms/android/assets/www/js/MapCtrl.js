@@ -1,82 +1,142 @@
-angular.module('starter.controllers').controller('MapCtrl', function($scope, pois, $ionicLoading, $rootScope) {
+angular.module('starter.controllers').controller('MapCtrl', function($scope, $rootScope, pois, centers) {
+  $scope.rangeValue = 0;
+    $scope.year = 1991;
+    $scope.month='01';
+    $scope.lines=[];
+    $scope.markers=[];
   $scope.mapCreated = function(map) {
+    $scope.pois=pois;
     $scope.map = map;
-    var marker = new google.maps.Marker({
-      position: {lat: -25.363, lng: 131.044},
-      icon: {
-        path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-        scale: 5
-      },
-      
-      map: map,
-      title: 'Your Location'
-    });
-    $scope.marker=marker;
-    $scope.watching=false;
+    $scope.windows=[];
+
+    for(var center in centers){
+      var marker = new google.maps.Marker({
+        position: centers[center],
+        map: $scope.map,
+        title: center
+      });
+    }
+
+    $scope.drawData();
+        
     
-
-      for(var poi in pois){
-        var p = pois[poi];
-        p.marker.setMap(map);
-        p.marker.addListener('click', markerClick(map, p));
-      }
-
-    $scope.centerOnMe();
-
-    function markerClick(map, p){
-      return function(){
-        map.setZoom(18);
-        map.panTo(p.center);
-        var infowindow = new google.maps.InfoWindow({
-          content: p.getText()
-        });
-        infowindow.open(map, p.marker);
-      }
-    }
   };
+$scope.makeLine = function(countries, c1, c2, line, map) {
+   var infowindow = new google.maps.InfoWindow({
+            content: '<h1 id="firstHeading" class="firstHeading">' + c1 + ' - ' + c2 + '</h1>'+
+                  '<div id="bodyContent">'+
+                  '<p><b> cooperation</b>: ' +  countries[c1][c2].coop + '</p>'+
+                  '<p><b> conflict</b>: ' +  countries[c1][c2].confl + '</p>'+
 
-  $scope.centerOnMe = function () {
-    if (!$scope.map) {
-      return;
+                  '</div>' 
+          });
+          $scope.windows.push(infowindow);
+          google.maps.event.addListener(line, 'mouseover', function (event) {
+            // lineHover(event.latLng.lat(),event.latLng.lng(), infowindow);
+            $scope.windows.forEach(function(w){
+              w.close();
+            });
+            var lat = event.latLng.lat();
+            var lng = event.latLng.lng();
+            line.position={lat:lat, lng:lng};
+            infowindow.open(map, line);               
+          });
+
+          var diff = Math.abs((countries[c1][c2].coop - countries[c1][c2].confl)/
+          ((countries[c1][c2].confl+countries[c1][c2].coop)/2));
+
+          if(diff>.5 && countries[c1][c2].coop>countries[c1][c2].confl)
+                line.setOptions({strokeColor: 'green'});
+          else if(diff>.5 && countries[c1][c2].confl>countries[c1][c2].coop)
+            line.setOptions({strokeColor: 'red'});
+          else
+            line.setOptions({strokeColor: 'yellow'});
+
+          var total = countries[c1][c2].confl+countries[c1][c2].coop;
+          if(total>20){
+            line.setOptions({strokeWeight: 3});
+          }
+          if(total>50){
+            line.setOptions({strokeWeight: 4});
+          }
+          if(total>100){
+            line.setOptions({strokeWeight: 5});
+          }
+          if(total>200){
+            line.setOptions({strokeWeight: 6});
+          }
+          if(total>500){
+            line.setOptions({strokeWeight: 7});
+          }
+          if(total>1000){
+            line.setOptions({strokeWeight: 8});
+          }
+          if(total>1500){
+            line.setOptions({strokeWeight: 9});
+          }
+
+
+          
+};
+
+$scope.drag = function(value) {
+    $scope.year = Math.floor(value / 12) + 1991;
+    $scope.month = value % 12 +1;
+    if($scope.month<10){
+      $scope.month="0"+$scope.month;
     }
+    $scope.month=""+$scope.month;
+    
+    $scope.drawData();
 
-    if($scope.watching==true){
-      $scope.map.panTo($scope.marker.getPosition());
-      $scope.map.setZoom(18);
-      return;
-    }
+};
 
-    $scope.loading = $ionicLoading.show({
-      content: 'Getting current location...',
-      showBackdrop: false
-    });
-
+$scope.drawData = function(){
   
-  function onSuccess(position) {
-      $rootScope.myLat = position.coords.latitude;
-      $rootScope.myLng = position.coords.longitude;
-      var pos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-      var heading = position.coords.heading;
-      var icon = $scope.marker.getIcon();
 
-      if(heading){
-        icon.rotation=heading;
+  for(var l in $scope.lines){
+      $scope.lines[l].setMap(null);
+    }
+    $scope.lines=[];
+
+  var countries = pois[$scope.year+$scope.month];
+    for(var c1 in countries){
+      for(var c2 in countries[c1]){
+          // if(!$scope.isChecked("None"))
+          //   continue;
+          if(!$scope.isChecked(c2) && !$scope.isChecked(c1))
+            continue;
+          var p1 = centers[c1];
+          var p2 = centers[c2];
+          var x = countries[c1][c2];
+          var line = new google.maps.Polyline({
+              path: [p1,p2],
+              geodesic: true,
+              strokeColor: '#FF000',
+              strokeOpacity: .8,
+              strokeWeight: 2,
+              position: p1
+          }); 
+          line.setMap($scope.map);
+          $scope.makeLine(countries, c1, c2, line, $scope.map);
+          $scope.lines.push(line);
       }
-      $scope.marker.setIcon(icon);
-      $scope.marker.setPosition(pos);
-      $scope.loading.hide();
-      if($scope.watching==false)
-        $scope.map.setCenter($scope.marker.getPosition());
-      
-      $scope.watching=true;
+    }
 
-  }
-  function onError(error) {
-      alert('code: '    + error.code    + '\n' +
-            'message: ' + error.message + '\n');
-      $scope.loading.hide();
-  }
-
-  var watchID = navigator.geolocation.watchPosition(onSuccess, onError, { enableHighAccuracy: true });
   };
+
+$rootScope.$watch('num', function(){
+  $scope.drawData();
+});
+
+$scope.isChecked = function(country){
+  for(c in $rootScope.list){
+
+    if($rootScope.list[c].name===country)
+      return $rootScope.list[c].checked;
+  }
+  return true;
+};
+
+
 });

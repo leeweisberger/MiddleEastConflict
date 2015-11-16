@@ -1,4 +1,4 @@
-angular.module('starter', ['ionic', 'starter.controllers'])
+angular.module('starter', ['ionic', 'starter.controllers','ionic.contrib.ui.cards','rzModule'])
 
 .config(function($stateProvider, $urlRouterProvider) {
   $stateProvider
@@ -19,15 +19,6 @@ angular.module('starter', ['ionic', 'starter.controllers'])
       }
     })
 
-    .state('app.pois', {
-      url: '/pois',
-      views: {
-        'menuContent': {
-          templateUrl: 'templates/pois.html',
-          controller: 'PoisCtrl'
-        }
-      }
-    })
   // if none of the above states are matched, use this as the fallback
   $urlRouterProvider.otherwise('/app/map');
 });

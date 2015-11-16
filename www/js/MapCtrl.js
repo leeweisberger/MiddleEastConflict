@@ -7,6 +7,8 @@ angular.module('starter.controllers').controller('MapCtrl', function($scope, $ro
   $scope.mapCreated = function(map) {
     $scope.pois=pois;
     $scope.map = map;
+    $scope.windows=[];
+
     for(var center in centers){
       var marker = new google.maps.Marker({
         position: centers[center],
@@ -19,7 +21,6 @@ angular.module('starter.controllers').controller('MapCtrl', function($scope, $ro
         
     
   };
-
 $scope.makeLine = function(countries, c1, c2, line, map) {
    var infowindow = new google.maps.InfoWindow({
             content: '<h1 id="firstHeading" class="firstHeading">' + c1 + ' - ' + c2 + '</h1>'+
@@ -29,8 +30,12 @@ $scope.makeLine = function(countries, c1, c2, line, map) {
 
                   '</div>' 
           });
-          google.maps.event.addListener(line, 'click', function (event) {
+          $scope.windows.push(infowindow);
+          google.maps.event.addListener(line, 'mouseover', function (event) {
             // lineHover(event.latLng.lat(),event.latLng.lng(), infowindow);
+            $scope.windows.forEach(function(w){
+              w.close();
+            });
             var lat = event.latLng.lat();
             var lng = event.latLng.lng();
             line.position={lat:lat, lng:lng};
@@ -66,6 +71,9 @@ $scope.makeLine = function(countries, c1, c2, line, map) {
           if(total>1000){
             line.setOptions({strokeWeight: 8});
           }
+          if(total>1500){
+            line.setOptions({strokeWeight: 9});
+          }
 
 
           
@@ -77,6 +85,7 @@ $scope.drag = function(value) {
     if($scope.month<10){
       $scope.month="0"+$scope.month;
     }
+    $scope.month=""+$scope.month;
     
     $scope.drawData();
 
@@ -93,6 +102,8 @@ $scope.drawData = function(){
   var countries = pois[$scope.year+$scope.month];
     for(var c1 in countries){
       for(var c2 in countries[c1]){
+          // if(!$scope.isChecked("None"))
+          //   continue;
           if(!$scope.isChecked(c2) && !$scope.isChecked(c1))
             continue;
           var p1 = centers[c1];
